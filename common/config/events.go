@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/streadway/amqp"
 	"log"
@@ -34,19 +35,19 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 
 	var err error
 
-	log.Printf("dialing %s", amqpUri)
+	logrus.Infof("dialing %s", amqpUri)
 	c.conn, err = amqp.Dial(amqpUri)
 	if err != nil {
 		return fmt.Errorf("Dial: %s", err)
 	}
 
-	log.Printf("got Connection, getting Channel")
+	logrus.Infof("got Connection, getting Channel")
 	c.channel, err = c.conn.Channel()
 	if err != nil {
 		return fmt.Errorf("Channel: %s", err)
 	}
 
-	log.Printf("got Channel, declaring Exchange (%s)", exchange)
+	logrus.Infof("got Channel, declaring Exchange (%s)", exchange)
 	if err = c.channel.ExchangeDeclare(
 		exchange,
 		exchangeType,
@@ -59,7 +60,7 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 		return fmt.Errorf("Exchange Declare: %s", err)
 	}
 
-	log.Printf("declared Exchange, declaring Queue (%s)", queue)
+	logrus.Infof("declared Exchange, declaring Queue (%s)", queue)
 	state, err := c.channel.QueueDeclare(
 		queue,
 		false,
@@ -71,7 +72,7 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 		return fmt.Errorf("Queue Declare: %s", err)
 	}
 
-	log.Printf("declared Queue (%d messages, %d consumers), bidding to Exchange (key '%s')",
+	logrus.Infof("declared Queue (%d messages, %d consumers), bidding to Exchange (key '%s')",
 		state.Messages, state.Consumers, key)
 
 	if err = c.channel.QueueBind(
@@ -83,7 +84,7 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 		return fmt.Errorf("Queue Bind: %s", err)
 	}
 
-	log.Printf("Queue bound to Exchange, starting Consume (consumer tag '%s')", c.tag)
+	logrus.Infof("Queue bound to Exchange, starting Consume (consumer tag '%s')", c.tag)
 	deliveries, err := c.channel.Consume(
 		queue,
 		c.tag,
@@ -105,12 +106,12 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 
 func handle(deliveries <-chan amqp.Delivery, done chan error) {
 	for d:= range deliveries {
-		log.Printf("got %dB consumer: [%v] delivery: [%v] routingkey: [%v] %s",
+		logrus.Infof("got %dB consumer: [%v] delivery: [%v] routingkey: [%v] %s",
 			len(d.Body), d.ConsumerTag, d.DeliveryTag, d.RoutingKey, d.Body)
 		handleRefreshEvent(d.Body, d.ConsumerTag)
 		d.Ack(false)
 	}
-	log.Printf("handle: deliveries channel closed")
+	logrus.Infof("handle: deliveries channel closed")
 	done <- nil
 }
 
@@ -120,10 +121,10 @@ func handleRefreshEvent(body []byte, consumerTag string) {
 	updateToken:= &UpdateToken{}
 	err := json.Unmarshal(body, updateToken)
 	if err != nil {
-		log.Printf("Problem parsing UpdateToken: %v", err.Error())
+		logrus.Infof("Problem parsing UpdateToken: %v", err.Error())
 	} else {
 		if strings.Contains(updateToken.DestinationService, consumerTag) {
-			log.Println("Reloading Viper config from Spring Cloud Config server")
+			logrus.Infoln("Reloading Viper config from Spring Cloud Config server")
 
 			LoadConfigurationFromBranch(
 				viper.GetString("configServerUrl"),
@@ -141,6 +142,6 @@ func StartListener(appName string, amqpServer string, exchangeName string) {
 		log.Fatalf("%s", err)
 	}
 
-	log.Printf("running forever")
+	logrus.Infof("running forever")
 	select {}
 }

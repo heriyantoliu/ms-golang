@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/heriyantoliu/ms-golang/common/config"
 	"github.com/heriyantoliu/ms-golang/common/messaging"
 	"github.com/heriyantoliu/ms-golang/vipservice/service"
@@ -28,7 +29,7 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Starting " + appName + "...")
+	logrus.Infoln("Starting " + appName + "...")
 
 	config.LoadConfigurationFromBranch(viper.GetString("configServerUrl"), appName, viper.GetString("profile"), viper.GetString("configBranch"))
 	initializeMessaging()
@@ -42,7 +43,7 @@ func main() {
 }
 
 func onMessage(delivery amqp.Delivery) {
-	fmt.Printf("Got a message: %v\n", string(delivery.Body))
+	logrus.Infof("Got a message: %v\n", string(delivery.Body))
 }
 
 func initializeMessaging() {
@@ -72,7 +73,7 @@ func handleSigTerm(handleExit func()) {
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		fmt.Printf("%s: %s", msg, err)
+		logrus.Infof("%s: %s", msg, err)
 		panic(fmt.Sprintf("%s: %s", msg, err))
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"github.com/sirupsen/logrus"
 
 	"github.com/boltdb/bolt"
 	"github.com/heriyantoliu/ms-golang/accountservice/model"
@@ -82,7 +83,7 @@ func (bc *BoltClient) seedAccounts() {
 			return err
 		})
 	}
-	fmt.Printf("Seeded %v fake accounts...\n", total)
+	logrus.Infof("Seeded %v fake accounts...\n", total)
 }
 
 func (bc *BoltClient) Check() bool {

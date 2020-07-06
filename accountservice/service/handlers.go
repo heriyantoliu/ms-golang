@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -57,10 +58,10 @@ func notifVIP(account model.Account) {
 		go func(account model.Account) {
 			vipNotification := model.VipNotification{AccountId: account.Id, ReadAt: time.Now().UTC().String()}
 			data,  _ := json.Marshal(vipNotification)
-			fmt.Printf("Notifiying VIP account %v\n", account.Id)
+			logrus.Infof("Notifiying VIP account %v\n", account.Id)
 			err := MessagingClient.PublishOnQueue(data, "vip_queue")
 			if err != nil {
-				fmt.Println(err.Error())
+				logrus.Infoln(err.Error())
 			}
 		}(account)
 	}
@@ -121,7 +122,7 @@ type healthCheckResponse struct {
 func SetHealthyState(w http.ResponseWriter, r *http.Request) {
 	var state, err = strconv.ParseBool(mux.Vars(r)["state"])
 	if err != nil {
-		fmt.Println("Invalid request to SetHealthyState, allowed values are true or false")
+		logrus.Infoln("Invalid request to SetHealthyState, allowed values are true or false")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	
 	"github.com/heriyantoliu/ms-golang/common/messaging"
+	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,7 +29,7 @@ func init() {
 }
 
 func main() {
-	fmt.Printf("Starting %v\n", appName)
+	logrus.Infof("Starting %v\n", appName)
 
 	config.LoadConfigurationFromBranch(
 		viper.GetString("configServerUrl"),
