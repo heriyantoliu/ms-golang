@@ -1,1 +1,1 @@
-module "healthchecker"
+module github.com/heriyantoliu/ms-golang/healthchecker

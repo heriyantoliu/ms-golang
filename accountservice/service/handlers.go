@@ -1,18 +1,22 @@
 package service
 
 import (
-	"accountservice/dbclient"
-	"accountservice/model"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/heriyantoliu/ms-golang/accountservice/dbclient"
+	"github.com/heriyantoliu/ms-golang/accountservice/model"
+	"github.com/heriyantoliu/ms-golang/common/messaging"
 )
 
 var DBClient dbclient.IBoltClient
+var MessagingClient messaging.IMessagingClient
 var isHealthy = true
 var client = &http.Client{}
 
@@ -39,11 +43,27 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	notifVIP(account)
+
 	data, _ := json.Marshal(account)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", strconv.Itoa(len(data)))
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+func notifVIP(account model.Account) {
+	if account.Id == "10000" {
+		go func(account model.Account) {
+			vipNotification := model.VipNotification{AccountId: account.Id, ReadAt: time.Now().UTC().String()}
+			data,  _ := json.Marshal(vipNotification)
+			fmt.Printf("Notifiying VIP account %v\n", account.Id)
+			err := MessagingClient.PublishOnQueue(data, "vip_queue")
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		}(account)
+	}
 }
 
 func getQuote() (model.Quote, error) {
@@ -78,11 +98,11 @@ func getIP() string {
 
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	dbUp := DBClient.Check()
-	if dbUp && isHealthy{
+	if dbUp && isHealthy {
 		data, _ := json.Marshal(healthCheckResponse{Status: "UP"})
 		writeJsonResponse(w, http.StatusOK, data)
 	} else {
-		data, _ := json.Marshal(healthCheckResponse{Status:"Database unaccesible"})
+		data, _ := json.Marshal(healthCheckResponse{Status: "Database unaccesible"})
 		writeJsonResponse(w, http.StatusServiceUnavailable, data)
 	}
 }
@@ -100,7 +120,7 @@ type healthCheckResponse struct {
 
 func SetHealthyState(w http.ResponseWriter, r *http.Request) {
 	var state, err = strconv.ParseBool(mux.Vars(r)["state"])
-	if err!=nil {
+	if err != nil {
 		fmt.Println("Invalid request to SetHealthyState, allowed values are true or false")
 		w.WriteHeader(http.StatusBadRequest)
 		return

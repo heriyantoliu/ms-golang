@@ -1,11 +1,16 @@
 package main
 
 import (
-	"accountservice/config"
-	"accountservice/dbclient"
-	"accountservice/service"
 	"flag"
 	"fmt"
+	"github.com/heriyantoliu/ms-golang/common/messaging"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/heriyantoliu/ms-golang/common/config"
+	"github.com/heriyantoliu/ms-golang/accountservice/dbclient"
+	"github.com/heriyantoliu/ms-golang/accountservice/service"
 	"github.com/spf13/viper"
 )
 
@@ -30,14 +35,39 @@ func main() {
 		appName,
 		viper.GetString("profile"),
 		viper.GetString("configBranch"))
-	initializeBoltClient()
 
-	go config.StartListener(appName, viper.GetString("amqp_server_url"), viper.GetString("config_event_bus"))
+	initializeBoltClient()
+	initializeMessaging()
+	handleSigTerm(func(){
+		service.MessagingClient.Close()
+	})
+
 	service.StartWebServer(viper.GetString("server_port"))
+}
+
+func initializeMessaging() {
+	if !viper.IsSet("amqp_server_url") {
+		panic("No 'amqp_server_url' set in configuration, cannot start")
+	}
+
+	service.MessagingClient = &messaging.MessagingClient{}
+	service.MessagingClient.ConnectToBroker(viper.GetString("amqp_server_url"))
+	service.MessagingClient.Subscribe(viper.GetString("config_event_bus"), "topic", appName, config.HandleRefreshEvent)
 }
 
 func initializeBoltClient() {
 	service.DBClient = &dbclient.BoltClient{}
 	service.DBClient.OpenBoltDb()
 	service.DBClient.Seed()
+}
+
+func handleSigTerm(handleExit func()) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		<-c
+		handleExit()
+		os.Exit(1)
+	}()
 }

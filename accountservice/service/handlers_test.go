@@ -1,15 +1,25 @@
 package service
 
 import (
-	"accountservice/dbclient"
-	"accountservice/model"
+	"encoding/json"
 	"fmt"
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/mock"
 	"net/http/httptest"
 	"testing"
-	"encoding/json"
+	"time"
+
 	"github.com/h2non/gock"
+	"github.com/heriyantoliu/ms-golang/accountservice/dbclient"
+	"github.com/heriyantoliu/ms-golang/accountservice/model"
+	"github.com/heriyantoliu/ms-golang/common/messaging"
+	. "github.com/smartystreets/goconvey/convey"
 )
+
+var mockRepo = &dbclient.MockBoltClient{}
+var mockMessagingClient = &messaging.MockMessagingClient{}
+
+var anyString = mock.AnythingOfType("string")
+var anyByteArray = mock.AnythingOfType("[]uint8")
 
 func init() {
 	gock.InterceptClient(client)
@@ -38,8 +48,6 @@ func TestGetAccount(t *testing.T) {
 		MatchParam("strength", "4").
 		Reply(200).
 		BodyString(`{"quote":"May the source be with you. Always.","ipAddress":"10.0.0.5:8080","language":"en"}`)
-
-	mockRepo := &dbclient.MockBoltClient{}
 
 	mockRepo.On("QueryAccount", "123").Return(model.Account{Id: "123", Name: "Person_123"}, nil)
 	mockRepo.On("QueryAccount", "456").Return(model.Account{}, fmt.Errorf("Some error"))
@@ -79,4 +87,25 @@ func TestGetAccount(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestNotificationIsSentForVIPAccount(t *testing.T) {
+
+	mockRepo.On("QueryAccount", "10000").Return(model.Account{Id:"10000", Name:"Person_10000"}, nil)
+	DBClient = mockRepo
+
+	mockMessagingClient.On("PublishOnQueue", anyByteArray, anyString).Return(nil)
+	MessagingClient = mockMessagingClient
+
+	Convey("Given a HTTP req for a VIP account", t, func() {
+		req := httptest.NewRequest("GET", "/accounts/10000", nil)
+		resp := httptest.NewRecorder()
+		Convey("When the request is handled by the Router", func() {
+			NewRouter().ServeHTTP(resp, req)
+			Convey("Then the response should be a 200 and the MessageClient should have been invoked", func() {
+				So(resp.Code, ShouldEqual, 200)
+				time.Sleep(time.Millisecond * 10)    // Sleep since the Assert below occurs in goroutine
+				So(mockMessagingClient.AssertNumberOfCalls(t, "PublishOnQueue", 1), ShouldBeTrue)
+			})
+		})})
 }

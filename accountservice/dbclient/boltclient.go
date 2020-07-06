@@ -1,12 +1,13 @@
 package dbclient
 
 import (
-	"accountservice/model"
 	"encoding/json"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"log"
 	"strconv"
+
+	"github.com/boltdb/bolt"
+	"github.com/heriyantoliu/ms-golang/accountservice/model"
 )
 
 type IBoltClient interface {
@@ -33,7 +34,7 @@ func (bc *BoltClient) Seed() {
 	bc.seedAccounts()
 }
 
-func (bc *BoltClient) QueryAccount(accountId string) (model.Account, error ) {
+func (bc *BoltClient) QueryAccount(accountId string) (model.Account, error) {
 	account := model.Account{}
 	err := bc.boltDB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("AccountBucket"))
@@ -67,9 +68,9 @@ func (bc *BoltClient) initializeBucket() {
 func (bc *BoltClient) seedAccounts() {
 	total := 100
 	for i := 0; i < total; i++ {
-		key := strconv.Itoa(10000+i)
-		acc := model.Account {
-			Id: key,
+		key := strconv.Itoa(10000 + i)
+		acc := model.Account{
+			Id:   key,
 			Name: "Person_" + strconv.Itoa(i),
 		}
 
