@@ -17,3 +17,6 @@
 
 .idea
 accounts.db
+
+build
+.gradle
