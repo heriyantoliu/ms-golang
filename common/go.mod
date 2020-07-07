@@ -1,4 +1,4 @@
-module github.com/heriyantoliu/ms-golang/common v0.10.3
+module github.com/heriyantoliu/ms-golang/common
 
 go 1.14
 
