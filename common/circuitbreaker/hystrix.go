@@ -127,7 +127,7 @@ func Deregister(amqpClient messaging.IMessagingClient) {
 	}
 	token := DiscoveryToken{
 		State: "DOWN",
-		Address: ip
+		Address: ip,
 	}
 	bytes, _ := json.Marshal(token)
 	amqpClient.PublishOnQueue(bytes, "discovery")
@@ -147,7 +147,7 @@ func ConfigureHystrix(commands []string, amqpClient messaging.IMessagingClient) 
 
 	hystrixStreamHandler := hystrix.NewStreamHandler()
 	hystrixStreamHandler.Start()
-	go http.ListenAndServe(net.JoinHostPort("", 8181), hystrixStreamHandler)
+	go http.ListenAndServe(net.JoinHostPort("", "8181"), hystrixStreamHandler)
 	logrus.Infoln("Launched hystrixStreamHandler at 8181")
 
 	publishDiscoveryToken(amqpClient)
