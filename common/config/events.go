@@ -3,26 +3,27 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/streadway/amqp"
-	"log"
-	"strings"
 )
 
 type Consumer struct {
-	conn *amqp.Connection
+	conn    *amqp.Connection
 	channel *amqp.Channel
-	tag string
-	done chan error
+	tag     string
+	done    chan error
 }
 
 type UpdateToken struct {
-	Type string `json:"type"`
-	Timestamp int `json:"timestamp"`
-	OriginService string `json:"originService"`
+	Type               string `json:"type"`
+	Timestamp          int    `json:"timestamp"`
+	OriginService      string `json:"originService"`
 	DestinationService string `json:"destinationService"`
-	Id string `json:"id"`
+	Id                 string `json:"id"`
 }
 
 func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error {
@@ -56,7 +57,7 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 		false,
 		false,
 		nil,
-		); err != nil {
+	); err != nil {
 		return fmt.Errorf("Exchange Declare: %s", err)
 	}
 
@@ -93,7 +94,7 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 		false,
 		false,
 		nil,
-		)
+	)
 	if err != nil {
 		return fmt.Errorf("Queue Consume: %s", err)
 	}
@@ -105,7 +106,7 @@ func NewConsumer(amqpUri, exchange, exchangeType, queue, key, ctag string) error
 }
 
 func handle(deliveries <-chan amqp.Delivery, done chan error) {
-	for d:= range deliveries {
+	for d := range deliveries {
 		logrus.Infof("got %dB consumer: [%v] delivery: [%v] routingkey: [%v] %s",
 			len(d.Body), d.ConsumerTag, d.DeliveryTag, d.RoutingKey, d.Body)
 		handleRefreshEvent(d.Body, d.ConsumerTag)
@@ -115,10 +116,8 @@ func handle(deliveries <-chan amqp.Delivery, done chan error) {
 	done <- nil
 }
 
-
-
-func handleRefreshEvent(body []byte, consumerTag string) {
-	updateToken:= &UpdateToken{}
+func HandleRefreshEvent(body []byte, consumerTag string) {
+	updateToken := &UpdateToken{}
 	err := json.Unmarshal(body, updateToken)
 	if err != nil {
 		logrus.Infof("Problem parsing UpdateToken: %v", err.Error())
@@ -131,13 +130,13 @@ func handleRefreshEvent(body []byte, consumerTag string) {
 				consumerTag,
 				viper.GetString("profile"),
 				viper.GetString("configBranch"),
-				)
+			)
 		}
 	}
 }
 
 func StartListener(appName string, amqpServer string, exchangeName string) {
-	err := NewConsumer(amqpServer, exchangeName,"topic", "config-event-queue", exchangeName, appName)
+	err := NewConsumer(amqpServer, exchangeName, "topic", "config-event-queue", exchangeName, appName)
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
