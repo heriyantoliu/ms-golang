@@ -8,10 +8,9 @@ require (
 	github.com/boltdb/bolt v1.3.1
 	github.com/gorilla/mux v1.7.4
 	github.com/h2non/gock v0.0.0-00010101000000-000000000000
-	github.com/heriyantoliu/ms-golang/common v0.0.0-20200705134442-aa2476a3c2fb
+	github.com/heriyantoliu/ms-golang/common v0.0.0-20200707034000-b3a5a13e779e
+	github.com/sirupsen/logrus v1.6.0
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/viper v1.7.0
-	github.com/streadway/amqp v1.0.0 // indirect
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 )

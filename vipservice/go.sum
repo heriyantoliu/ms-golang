@@ -96,8 +96,8 @@ github.com/hashicorp/logutils v1.0.0/go.mod h1:QIAnNjmIWmVIIkWDTG1z5v++HQmx9WQRO
 github.com/hashicorp/mdns v1.0.0/go.mod h1:tL+uN++7HEJ6SQLQ2/p+z2pH24WQKWjBPkE0mNTz8vQ=
 github.com/hashicorp/memberlist v0.1.3/go.mod h1:ajVTdAv/9Im8oMAAj5G31PhhMCZJV2pPBoIllUwCN7I=
 github.com/hashicorp/serf v0.8.2/go.mod h1:6hOLApaqBFA1NXqRQAsxw9QxuDEvNxSQRwA/JwenrHc=
-github.com/heriyantoliu/ms-golang/common v0.0.0-20200705134442-aa2476a3c2fb h1:G4h4WJ0Nj16WiSimJFO0dMtFquzaX96j+/usVPW34x0=
-github.com/heriyantoliu/ms-golang/common v0.0.0-20200705134442-aa2476a3c2fb/go.mod h1:CS7pAUqG7T+5cck4rF2U9pGBfVadvea+Q9UQTndSZ9o=
+github.com/heriyantoliu/ms-golang/common v0.0.0-20200707034000-b3a5a13e779e h1:gWmx+HvwUrDiaG24Gk39DDncG1cuTNcvgzQljOkUwzc=
+github.com/heriyantoliu/ms-golang/common v0.0.0-20200707034000-b3a5a13e779e/go.mod h1:CS7pAUqG7T+5cck4rF2U9pGBfVadvea+Q9UQTndSZ9o=
 github.com/jonboulle/clockwork v0.1.0/go.mod h1:Ii8DK3G1RaLaWxj9trq07+26W01tbo22gdxWY5EU2bo=
 github.com/json-iterator/go v1.1.6/go.mod h1:+SdeFBvtyEkXs7REEP0seUULqWtbJapLOCVDaaPEHmU=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=

@@ -17,6 +17,8 @@
 
 .idea
 accounts.db
+test.sh
+token.txt
 
 build
 .gradle

@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	
+
 	"github.com/heriyantoliu/ms-golang/common/messaging"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -18,14 +18,17 @@ import (
 var appName = "accountservice"
 
 func init() {
-	profile := flag.String("profile", "test", "Environment profile, something similar to spring profiles")
-	configServerUrl := flag.String("configServerUrl", "http://configserver:8888", "Address to config server")
-	configBranch := flag.String("configBranch", "master", "git branch to fetch configuration from")
+
+	profile := flag.String("profile", "dev", "Environment profile, something similar to spring profiles")
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	configServerUrl := flag.String("configServerUrl", "http://localhost:8888", "Address to config server")
+	configBranch := flag.String("configBranch", "P9", "git branch to fetch configuration from")
 	flag.Parse()
 
 	viper.Set("profile", *profile)
 	viper.Set("configServerUrl", *configServerUrl)
 	viper.Set("configBranch", *configBranch)
+
 }
 
 func main() {
